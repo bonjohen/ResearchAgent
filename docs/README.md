@@ -4,10 +4,12 @@ This directory contains documentation for the Research Agent.
 
 ## Contents
 
-- [Installation Guide](installation.md) (Coming soon)
-- [Usage Guide](usage.md) (Coming soon)
-- [API Reference](api.md) (Coming soon)
-- [Development Guide](development.md) (Coming soon)
+- [Requirements](requirements.md)
+- [Development Plan](plan.md)
+- [Installation Guide](installation.md)
+- [Usage Guide](usage.md)
+- [API Reference](api.md)
+- [Development Guide](development.md)
 
 ## Overview
 

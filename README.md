@@ -15,6 +15,7 @@ The agent supports both OpenAI models and local models (like Llama3 7B) via Olla
 
 - Multi-agent architecture with planning, search, and writer agents
 - Support for both OpenAI models and local models via Ollama
+- Iterative research with automatic follow-up on generated questions
 - Web search capabilities with support for multiple search providers (Google, Serper, Tavily, DuckDuckGo)
 - Web content fetching and processing for deeper research
 - Comprehensive report generation in markdown format
@@ -78,8 +79,9 @@ run_ui.cmd
 This will start a web server at http://localhost:5000 where you can:
 1. Start new research tasks with different models and search providers
 2. View research progress in real-time
-3. Browse and read all generated reports
-4. Track active research tasks
+3. Run follow-up research on generated questions
+4. Browse and read all generated reports
+5. Track active research tasks
 
 ### Command-line Options
 
@@ -92,6 +94,7 @@ Options:
 - `--model-name`: Specific model name to use (e.g., gpt-4, llama3:7b)
 - `--search`, `-s`: Search provider to use (google, serper, tavily, duckduckgo)
 - `--verbose`, `-v`: Enable verbose logging
+- `--follow-up`, `-f`: Run follow-up research on the generated questions
 
 Examples:
 ```
@@ -101,6 +104,7 @@ run.cmd --search serper "machine learning"
 run.cmd --search tavily "blockchain technology"
 run.cmd --model openai --model-name gpt-4 "climate change"
 run.cmd --model ollama --model-name llama3:7b "renewable energy"
+run.cmd --follow-up "deep learning"  # Run initial research and then follow-up on generated questions
 ```
 
 ## Project Structure
@@ -124,6 +128,15 @@ Research data is stored in an external storage path outside the project folder. 
 - Cached content
 
 This approach ensures that your research data persists even if you delete or move the project folder.
+
+## Documentation
+
+- [Requirements](docs/requirements.md)
+- [Development Plan](docs/plan.md)
+- [Installation Guide](docs/installation.md)
+- [Usage Guide](docs/usage.md)
+- [API Reference](docs/api.md)
+- [Development Guide](docs/development.md)
 
 ## License
 

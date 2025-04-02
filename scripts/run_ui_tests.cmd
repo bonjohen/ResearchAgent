@@ -1,8 +1,8 @@
 @echo off
-REM run_ui.cmd - Run the Research Agent Web UI
+REM run_ui_tests.cmd - Run the web UI tests
 
 echo ===================================
-echo Research Agent Web UI
+echo Running Web UI Tests
 echo ===================================
 
 REM Activate virtual environment if not already activated
@@ -17,30 +17,30 @@ if not defined VIRTUAL_ENV (
 )
 
 REM Install required packages if not already installed
-pip show flask >nul 2>&1
+pip show selenium >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo Installing Flask...
-    pip install flask
+    echo Installing Selenium...
+    pip install selenium
 )
 
-pip show python-dotenv >nul 2>&1
+REM Install webdriver-manager if not already installed
+pip show webdriver-manager >nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    echo Installing python-dotenv...
-    pip install python-dotenv
+    echo Installing webdriver-manager...
+    pip install webdriver-manager
 )
 
-REM Run the web UI
-echo Starting web UI...
-echo.
-echo The web UI will be available at http://localhost:5000
-echo.
-echo Press Ctrl+C to stop the server
-echo.
+REM Run the web UI tests
+echo Running web UI tests...
 
-python -m src.ui.app
+echo Testing Flask app endpoints...
+python -m pytest tests/ui/test_flask_app.py -v
+
+echo Testing web interface...
+python -m pytest tests/ui/test_app.py -v
 
 echo ===================================
-echo Web UI stopped
+echo Web UI tests completed!
 echo ===================================
 
 pause

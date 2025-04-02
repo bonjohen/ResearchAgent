@@ -15,6 +15,8 @@ This document outlines the requirements for building a research agent using the 
 - Create a planning agent that breaks down the research topic into specific search queries
 - The agent should provide reasoning for each search query
 - Output should be a structured plan with 5-20 search terms
+- Implement iterative query refinement based on initial search results
+- Generate additional search queries by evaluating the results of a few initial web searches
 
 ### 2.2 Search Agent
 - Create a search agent that executes web searches using the WebSearchTool
@@ -34,6 +36,56 @@ This document outlines the requirements for building a research agent using the 
 4. Implement tracing for debugging and monitoring agent performance
 5. Create a user-friendly interface for submitting research topics and viewing results
 
+### 3.1 User Interface Requirements
+- Provide both command-line and web-based interfaces
+- Web UI should support real-time progress tracking
+- Allow selection of model provider and search provider through the UI
+- Support viewing and managing research reports
+- Enable follow-up research through the UI
+- Implement responsive design for different devices
+
+### 3.2 Software Requirements
+
+#### Core Dependencies
+- Python 3.9+ as the primary programming language
+- Flask 2.0.0+ for the web interface
+- python-dotenv 1.0.0+ for environment variable management
+
+#### API Integrations
+- OpenAI API for cloud-based language models
+- Ollama for local model hosting and inference
+
+#### Web Search and Content Retrieval
+- DuckDuckGo API for web search without API key
+- Serper API for enhanced search capabilities
+- Tavily API for additional search functionality
+- Google Custom Search API for Google search integration
+- Requests library for HTTP requests
+
+#### Data Processing and Storage
+- JSON for data serialization
+- Markdown for report formatting
+- Pathlib for cross-platform file path handling
+
+#### Testing
+- Pytest for unit and integration testing
+- Selenium 4.0.0+ for web UI testing
+- webdriver-manager 3.8.0+ for WebDriver management
+
+#### Utilities
+- Rich 13.0.0+ for enhanced terminal output
+- tqdm 4.65.0+ for progress bars
+- asyncio for asynchronous programming
+- typing for type hints
+- uuid for unique identifiers
+- datetime for date/time handling
+- threading for multi-threading support
+
+#### Development and Automation
+- venv for virtual environment management
+- pip for package management
+- CMD Batch Scripts for Windows automation
+
 ## 4. Output Requirements
 
 ### 4.1 Report Structure
@@ -41,10 +93,24 @@ This document outlines the requirements for building a research agent using the 
 - Detailed markdown report (1000+ words)
 - List of follow-up questions for further research
 
-### 4.2 Progress Tracking
+### 4.2 Iterative Research
+- Support for automatic follow-up research based on generated questions
+- Ability to run additional searches for follow-up questions
+- Enhanced report generation incorporating follow-up research
+- User control over whether to perform follow-up research
+
+### 4.3 Adaptive Query Generation
+- Generate a list of questions based on evaluating results of a few initial web search requests
+- Use initial queries to determine appropriate search queries for comprehensive research
+- Identify key subtopics and entities from initial search results
+- Adapt search strategy based on discovered information
+- Implement different query approaches (fan-out, iterative refinement, comparative)
+
+### 4.4 Progress Tracking
 - Display planning progress
 - Show search progress (x/y searches completed)
 - Indicate writing progress with status updates
+- Track follow-up research progress separately
 
 ## 5. Enhancement Opportunities
 
@@ -111,8 +177,10 @@ This document outlines the requirements for building a research agent using the 
 ### 10.1 Web Search Tool Compatibility
 - Ensure the WebSearchTool works with Ollama-hosted models
 - Create a standalone web search implementation if needed
-- Support configurable search providers (Google, Bing, DuckDuckGo, etc.)
+- Support configurable search providers (Google, Serper, Tavily, DuckDuckGo, etc.)
 - Implement rate limiting and caching to prevent excessive API calls
+- Add fallback mechanisms between search providers
+- Implement simulated search results when real results are unavailable
 
 ### 10.2 Search Result Processing
 - Optimize search result formatting for local model context windows
@@ -251,6 +319,28 @@ echo Setup complete! Virtual environment is activated.
 
 ## 15. Development Principles
 
+### 15.1 File Editing Safety
+
+- All file edits must use safe replacement techniques that verify content before modification
+- File content must be read completely before attempting edits to avoid word-wrapping issues
+- Line numbers must be determined programmatically rather than visually
+- String replacements must normalize whitespace and line endings for reliable matching
+- When editing files, content should be matched using semantic comparison rather than exact string matching
+- Helper utilities should be used to locate exact positions in files before making changes
+- All file edits must be verified after completion to ensure correctness
+
+### 15.2 Document-Driven Development
+
+- All development work must be guided by the requirements and plan documents
+- New features must be added to the requirements document before implementation
+- Implementation must follow the sequence outlined in the plan document
+- The plan document must be updated with necessary steps for any new requirements
+- Development phases must be completed in the order specified in the plan document
+- Any deviation from the plan must be explicitly approved before proceeding
+- Regular references to the requirements and plan documents must be made during development
+
+### 15.2 General Development Principles
+
 The following principles should guide all development work on this project:
 
 1. **Iterate on Existing Code**
@@ -302,9 +392,53 @@ The following principles should guide all development work on this project:
 
 ### 16.3 Windows Scripting
 - Provide CMD batch files for common operations (setup, run, test)
+- Use CMD instead of PowerShell for all scripts to ensure compatibility
 - Ensure all scripts work properly in Windows environments
 - Include clear documentation in script headers
 - Add error handling and user feedback in scripts
+
+## 17. Deployment Requirements
+
+### 17.1 System Requirements
+
+#### Development Environment
+- Windows 10/11 or compatible operating system
+- Minimum 8GB RAM (16GB recommended for local model inference)
+- Minimum 4-core CPU (8-core recommended for local model inference)
+- 20GB free disk space for application and dependencies
+- 50GB+ free disk space if using local models via Ollama
+- Internet connection for API access and web searches
+
+#### Production Environment
+- Shared hosting with Python support or VPS (Virtual Private Server)
+- Linux-based server with Python 3.9+ support
+- Minimum 4GB RAM for cloud-based models only
+- Minimum 8GB RAM if using local models
+- 10GB+ disk space (50GB+ if using local models)
+- HTTPS support for secure API communication
+
+### 17.2 GoDaddy Deployment
+
+#### Hosting Requirements
+- GoDaddy hosting plan with Python support
+- SSH access for command-line operations
+- Ability to configure environment variables
+- Support for WSGI applications
+- SSL certificate for secure connections
+
+#### Deployment Process
+- Create deployment-specific configuration
+- Set up environment variables in hosting control panel
+- Configure web server with WSGI support
+- Set up external storage for research data
+- Implement backup procedures
+- Configure monitoring and error logging
+
+#### Documentation
+- Provide detailed deployment instructions
+- Document server maintenance procedures
+- Create administrator guide
+- Include troubleshooting information
 
 ### 16.4 Virtual Environment Management
 - Use venv for Python dependency management

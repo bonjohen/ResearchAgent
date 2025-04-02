@@ -43,6 +43,9 @@ def parse_arguments():
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose logging"
     )
+    parser.add_argument(
+        "--follow-up", "-f", action="store_true", help="Run follow-up research on the generated questions"
+    )
 
     return parser.parse_args()
 
@@ -94,6 +97,18 @@ async def main():
             for i, question in enumerate(report.follow_up_questions, 1):
                 print(f"{i}. {question}")
             print()
+
+            # Run follow-up research if requested
+            if args.follow_up:
+                print("\n===================================")
+                print("Running follow-up research...")
+                print("===================================\n")
+
+                enhanced_report = await manager.run_follow_up_research(report)
+
+                print("\n===================================")
+                print("Follow-up research completed!")
+                print("===================================\n")
 
     except KeyboardInterrupt:
         logger.info("Research Agent interrupted by user.")

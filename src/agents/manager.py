@@ -6,7 +6,7 @@ This module implements the ResearchManager class, which orchestrates the researc
 
 import asyncio
 import os
-from typing import List, Optional
+from typing import Dict, List, Optional, Set, Tuple
 
 from src.agents.planning import PlanningAgent, SearchQuery, ResearchPlan
 from src.agents.search import SearchAgent, SearchResult
@@ -15,6 +15,7 @@ from src.models.base import ModelProvider
 from src.models.factory import create_model_provider
 from src.tools.web_search import WebSearchTool
 from src.utils.logger import get_logger
+from src.utils.vector_db import RAGProcessor
 
 logger = get_logger(__name__)
 
@@ -26,13 +27,15 @@ class ResearchManager:
     on a given topic and produce a comprehensive report.
     """
 
-    def __init__(self, model_provider: Optional[ModelProvider] = None, model_type: str = "openai"):
+    def __init__(self, model_provider: Optional[ModelProvider] = None, model_type: str = "openai", search_provider: str = "duckduckgo", use_rag: bool = False):
         """
         Initialize the ResearchManager.
 
         Args:
             model_provider (Optional[ModelProvider], optional): The model provider to use. Defaults to None (creates provider based on model_type).
             model_type (str, optional): The type of model to use if model_provider is None. Defaults to "openai".
+            search_provider (str, optional): The search provider to use. Defaults to "duckduckgo".
+            use_rag (bool, optional): Whether to use RAG for local models. Defaults to False.
         """
         logger.info("Initializing ResearchManager")
 
@@ -41,12 +44,20 @@ class ResearchManager:
         logger.info(f"Using model provider: {self.model_provider.__class__.__name__} with model: {self.model_provider.model_name}")
 
         # Initialize the search tool
-        self.search_tool = WebSearchTool()
+        self.search_tool = WebSearchTool(provider=search_provider)
+        logger.info(f"Using search provider: {search_provider}")
 
         # Initialize the agents with the same model provider
         self.planning_agent = PlanningAgent(model_provider=self.model_provider)
         self.search_agent = SearchAgent(model_provider=self.model_provider, search_tool=self.search_tool)
         self.writer_agent = WriterAgent(model_provider=self.model_provider)
+
+        # Initialize RAG processor for local models if needed
+        self.use_rag = use_rag and model_type == "ollama"  # Only use RAG with local models
+        self.rag_processor = RAGProcessor(collection_name="research_data") if self.use_rag else None
+
+        if self.use_rag:
+            logger.info("Using RAG for local models")
 
     async def run(self, query: str) -> ResearchReport:
         """
@@ -154,7 +165,91 @@ class ResearchManager:
             "results": search_results
         }
 
+        # If using RAG with local models, store the search results in the vector database
+        if self.use_rag and self.rag_processor:
+            logger.info("Storing search results in vector database for RAG")
+
+            # Process each search result and store in the vector database
+            for result in search_results:
+                if result.content:
+                    # Store the content with metadata
+                    metadata = {
+                        "title": result.title,
+                        "url": result.url,
+                        "topic": topic,
+                        "query": result.query
+                    }
+                    self.rag_processor.process_document(result.content, metadata)
+
+            # Enhance the writer agent's prompt with relevant context from the vector database
+            prompt_template = """You are researching the topic: {topic}.
+
+            Here is relevant information from previous research:
+            {context}
+
+            Use this information along with the search results to generate a comprehensive report."""
+
+            # Add the RAG context to the data
+            enhanced_prompt = self.rag_processor.enhance_prompt_with_context(topic, prompt_template)
+            data["rag_context"] = enhanced_prompt
+
         # Generate the report
         return await self.writer_agent.run(data)
 
+    async def run_follow_up_research(self, report: ResearchReport) -> ResearchReport:
+        """
+        Run follow-up research based on the follow-up questions in a report.
 
+        This method takes the follow-up questions from a previous research report,
+        conducts additional research on those questions, and generates a new,
+        more comprehensive report.
+
+        Args:
+            report (ResearchReport): The original research report
+
+        Returns:
+            ResearchReport: The new, more comprehensive research report
+        """
+        if not report.follow_up_questions or len(report.follow_up_questions) == 0:
+            logger.warning("No follow-up questions found in the report")
+            return report
+
+        logger.info(f"Running follow-up research with {len(report.follow_up_questions)} questions")
+        print(f"\nRunning follow-up research with {len(report.follow_up_questions)} questions")
+        print("=" * 50)
+
+        # Store all search results (original + follow-up)
+        all_search_results = []
+
+        # Step 1: Execute searches for each follow-up question
+        print("\nExecuting follow-up searches...")
+        for i, question in enumerate(report.follow_up_questions):
+            print(f"  Researching follow-up question {i+1}/{len(report.follow_up_questions)}: {question}")
+
+            # Create a search query for the question
+            query = SearchQuery(query=question, reason=f"Follow-up question from previous research")
+
+            # Execute the search
+            result = await self.search_agent.run(question)
+            all_search_results.append(result)
+
+            print(f"  Completed search for question {i+1}")
+
+        # Step 2: Generate a new, more comprehensive report
+        print("\nSynthesizing all information...")
+
+        # Combine original topic with follow-up context
+        enhanced_topic = f"{report.topic} (with follow-up research)"
+
+        # Generate the enhanced report
+        enhanced_report = await self._generate_report(enhanced_topic, all_search_results)
+
+        # Print a summary of the enhanced report
+        print("\nEnhanced Research Summary:")
+        print("-" * 50)
+        print(enhanced_report.summary)
+        print("-" * 50)
+
+        print(f"\nFollow-up research complete! Enhanced report saved.")
+
+        return enhanced_report
