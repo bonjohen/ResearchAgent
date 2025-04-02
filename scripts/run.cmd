@@ -18,7 +18,7 @@ if not defined VIRTUAL_ENV (
 
 REM Run the research agent
 echo Starting Research Agent...
-python src\main.py %*
+python run_research.py %*
 if %ERRORLEVEL% neq 0 (
     echo Research Agent exited with an error.
     exit /b 1

@@ -5,108 +5,141 @@ This module implements the ResearchManager class, which orchestrates the researc
 """
 
 import asyncio
-import time
-from typing import List, Optional
+from typing import List
 
+from src.agents.planning import PlanningAgent, SearchQuery, ResearchPlan
+from src.agents.search import SearchAgent, SearchResult
+from src.agents.writer import WriterAgent, ResearchReport
 from src.utils.logger import get_logger
-from src.utils.storage import save_report
 
 logger = get_logger(__name__)
 
 class ResearchManager:
     """
     Research Manager class that orchestrates the research process.
-    
+
     This class coordinates the planning, search, and writing agents to conduct research
     on a given topic and produce a comprehensive report.
     """
-    
+
     def __init__(self):
         """
         Initialize the ResearchManager.
         """
         logger.info("Initializing ResearchManager")
-        # Note: Actual agent initialization will be implemented in Phase 2
-        self.planning_agent = None
-        self.search_agent = None
-        self.writer_agent = None
-    
-    async def run(self, query: str) -> None:
+
+        # Initialize the agents
+        self.planning_agent = PlanningAgent()
+        self.search_agent = SearchAgent()
+        self.writer_agent = WriterAgent()
+
+    async def run(self, query: str) -> ResearchReport:
         """
         Run the research process for the given query.
-        
+
         Args:
             query (str): The research topic or question
+
+        Returns:
+            ResearchReport: The generated research report
         """
         logger.info(f"Starting research on: {query}")
-        
+
         print(f"\nResearching: {query}")
         print("=" * 50)
-        
-        # Phase 1 implementation - placeholder for the actual research process
-        print("\nInitializing research process...")
-        await asyncio.sleep(1)  # Simulate initialization
-        
+
+        # Step 1: Plan the research
         print("\nPlanning research approach...")
-        await asyncio.sleep(2)  # Simulate planning
-        
+        research_plan = await self._plan_research(query)
+        print(f"Created research plan with {len(research_plan.queries)} search queries")
+
+        # Step 2: Execute the search queries
         print("\nExecuting web searches...")
-        await asyncio.sleep(3)  # Simulate searching
-        
+        search_results = await self._execute_searches(research_plan.queries)
+        print(f"Completed {len(search_results)} searches")
+
+        # Step 3: Generate the research report
         print("\nSynthesizing information...")
-        await asyncio.sleep(2)  # Simulate writing
-        
-        # Generate a placeholder report
-        report = self._generate_placeholder_report(query)
-        
-        # Save the report
-        report_path = save_report(report, query)
-        
-        print(f"\nResearch complete! Report saved to: {report_path}")
-    
-    def _generate_placeholder_report(self, query: str) -> str:
+        report = await self._generate_report(query, search_results)
+
+        # Print a summary of the report
+        print("\nResearch Summary:")
+        print("-" * 50)
+        print(report.summary)
+        print("-" * 50)
+
+        print(f"\nResearch complete! Report saved.")
+
+        return report
+
+    async def _plan_research(self, topic: str) -> ResearchPlan:
         """
-        Generate a placeholder report for Phase 1 implementation.
-        
+        Plan the research by generating search queries.
+
         Args:
-            query (str): The research topic or question
-        
+            topic (str): The research topic
+
         Returns:
-            str: Placeholder report content
+            ResearchPlan: The research plan with search queries
         """
-        return f"""# Research Report: {query}
+        logger.info(f"Planning research for topic: {topic}")
+        return await self.planning_agent.run(topic)
 
-## Summary
+    async def _execute_searches(self, queries: List[SearchQuery]) -> List[SearchResult]:
+        """
+        Execute the search queries in parallel.
 
-This is a placeholder report for the research topic: "{query}". 
-The actual implementation of the research agents will be completed in Phase 2.
+        Args:
+            queries (List[SearchQuery]): The search queries to execute
 
-## Introduction
+        Returns:
+            List[SearchResult]: The search results
+        """
+        logger.info(f"Executing {len(queries)} search queries")
 
-This report would normally contain comprehensive information about {query},
-gathered from multiple web sources and synthesized into a cohesive document.
+        # Create a list to store the results
+        results = []
 
-## Methodology
+        # Process queries in batches to avoid overwhelming the system
+        batch_size = 5
+        for i in range(0, len(queries), batch_size):
+            batch = queries[i:i+batch_size]
 
-The research would be conducted using the following approach:
-1. Planning the research by identifying key search queries
-2. Executing web searches to gather relevant information
-3. Synthesizing the information into a comprehensive report
+            # Create tasks for each query in the batch
+            tasks = []
+            for query in batch:
+                print(f"  Searching for: {query.query}")
+                tasks.append(self.search_agent.run(query.query))
 
-## Findings
+            # Execute the batch of searches in parallel
+            batch_results = await asyncio.gather(*tasks)
+            results.extend(batch_results)
 
-Placeholder for research findings.
+            # Print progress
+            print(f"  Completed {len(results)}/{len(queries)} searches")
 
-## Conclusion
+        return results
 
-Placeholder for research conclusions.
+    async def _generate_report(self, topic: str, search_results: List[SearchResult]) -> ResearchReport:
+        """
+        Generate a research report from the search results.
 
-## Follow-up Questions
+        Args:
+            topic (str): The research topic
+            search_results (List[SearchResult]): The search results
 
-1. What are the most important aspects of {query}?
-2. How has {query} evolved over time?
-3. What are the future implications of {query}?
+        Returns:
+            ResearchReport: The generated research report
+        """
+        logger.info(f"Generating research report for topic: {topic}")
 
----
-*This report was generated by the Research Agent (Phase 1 Implementation)*
-"""
+        # Prepare the input data for the writer agent
+        data = {
+            "topic": topic,
+            "results": search_results
+        }
+
+        # Generate the report
+        return await self.writer_agent.run(data)
+
+
