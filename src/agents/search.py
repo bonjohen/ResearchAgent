@@ -14,7 +14,8 @@ from src.agents.base import BaseAgent
 from src.models.base import ModelProvider
 from src.models.factory import create_model_provider
 from src.tools.base import Tool, ToolRegistry
-from src.tools.web_search import WebSearchTool
+from src.tools.real_web_search import RealWebSearchTool
+from src.tools.web_content import WebContentTool
 from src.utils.logger import get_logger
 from src.utils.storage import get_storage_path
 
@@ -52,8 +53,9 @@ class SearchAgent(BaseAgent):
         # Initialize the model provider
         self.model_provider = model_provider or create_model_provider("openai")
 
-        # Initialize the search tool
-        self.search_tool = search_tool or ToolRegistry.get("web_search") or WebSearchTool()
+        # Initialize the search tools
+        self.search_tool = search_tool or ToolRegistry.get("web_search") or RealWebSearchTool()
+        self.content_tool = ToolRegistry.get("web_content") or WebContentTool()
 
     async def process(self, query: str) -> SearchResult:
         """
@@ -74,6 +76,20 @@ class SearchAgent(BaseAgent):
 
             # Extract the search results
             search_results = search_response.get("results", [])
+
+            # Fetch additional content for the top result if available
+            if search_results and len(search_results) > 0:
+                try:
+                    top_url = search_results[0].get("url")
+                    if top_url:
+                        self.logger.info(f"Fetching additional content from top result: {top_url}")
+                        content_response = await self.content_tool.execute(url=top_url)
+                        if content_response.get("success"):
+                            # Add the detailed content to the first result
+                            search_results[0]["detailed_content"] = content_response.get("content", "")
+                            search_results[0]["title"] = content_response.get("title") or search_results[0].get("title", "")
+                except (asyncio.TimeoutError, KeyError, ValueError) as e:
+                    self.logger.warning(f"Error fetching additional content: {e}")
 
             # Create a summary of the search results using the model
             summary = await self._summarize_results_with_llm(query, search_results)
@@ -187,14 +203,25 @@ class SearchAgent(BaseAgent):
         Returns:
             str: A summary of the search results
         """
-        # Extract snippets and titles from results
+        # Extract snippets, titles, and detailed content from results
         snippets = []
         for result in results:
             title = result.get("title", "")
             snippet = result.get("snippet", "")
             url = result.get("url", "")
-            if snippet:
-                snippets.append(f"Title: {title}\nURL: {url}\nSnippet: {snippet}")
+            detailed_content = result.get("detailed_content", "")
+
+            # Create a snippet with available information
+            result_text = f"Title: {title}\nURL: {url}"
+
+            if detailed_content:
+                # Use a truncated version of the detailed content
+                content_preview = detailed_content[:1000] + "..." if len(detailed_content) > 1000 else detailed_content
+                result_text += f"\nDetailed Content: {content_preview}"
+            elif snippet:
+                result_text += f"\nSnippet: {snippet}"
+
+            snippets.append(result_text)
 
         # If no snippets, return a simple message
         if not snippets:

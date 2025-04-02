@@ -1,0 +1,11 @@
+{
+  "query": "What is quantum computing?",
+  "summary": "Quantum computing is a concept with various aspects and applications, as described in the Wikipedia article. It involves leveraging quantum mechanics to process information in ways that classical computers cannot, potentially leading to significant advancements in computing power and problem-solving capabilities. Educational resources provide comprehensive guides on the fundamentals, history, and modern applications of quantum computing, highlighting its importance in the technological landscape.\n\nRecent developments in quantum computing show promising results, with experts suggesting future advancements in the field. Research papers offer in-depth analyses of quantum computing from multiple perspectives, showcasing the extensive studies conducted to understand its complexities. Forums provide a platform for users to engage in discussions, sharing experiences, insights, and questions related to quantum computing, fostering a community interested in exploring its various aspects and implications.",
+  "sources": [
+    "https://en.wikipedia.org/wiki/What_is_quantum_computing?",
+    "https://education.example.com/what-is-quantum-computing?",
+    "https://news.example.com/articles/what-is-quantum-computing?",
+    "https://research.example.com/papers/what_is_quantum_computing?",
+    "https://forum.example.com/topics/what-is-quantum-computing?"
+  ]
+}

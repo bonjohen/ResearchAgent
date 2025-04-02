@@ -38,6 +38,9 @@ def parse_arguments():
         "--model-name", default=None, help="Specific model name to use"
     )
     parser.add_argument(
+        "--search", "-s", default=None, help="Search provider to use (google, duckduckgo)"
+    )
+    parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose logging"
     )
 
@@ -54,6 +57,11 @@ async def main():
         # Set log level based on verbose flag
         if args.verbose:
             os.environ["LOG_LEVEL"] = "DEBUG"
+
+        # Set search provider if specified
+        if args.search:
+            os.environ["SEARCH_ENGINE"] = args.search
+            print(f"Using search provider: {args.search}")
 
         # Initialize the model provider
         model_provider = create_model_provider(
