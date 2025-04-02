@@ -43,6 +43,17 @@ The agent supports both OpenAI models and local models (like Llama3 7B) via Olla
    ```
 3. Configure your environment variables in the `.env` file
 
+### Setting up Ollama (Optional)
+
+To use local models with Ollama:
+
+1. Install Ollama from [ollama.ai/download](https://ollama.ai/download)
+2. Run the Ollama setup script:
+   ```
+   scripts/setup_ollama.cmd
+   ```
+3. This will download the Llama3 7B model and configure Ollama for use with the Research Agent
+
 ## Usage
 
 Run the research agent:
@@ -62,8 +73,8 @@ run.cmd [options] [topic]
 ```
 
 Options:
-- `--model`, `-m`: Model provider to use (default: openai)
-- `--model-name`: Specific model name to use
+- `--model`, `-m`: Model provider to use (openai, ollama)
+- `--model-name`: Specific model name to use (e.g., gpt-4, llama3:7b)
 - `--search`, `-s`: Search provider to use (google, serper, tavily, duckduckgo)
 - `--verbose`, `-v`: Enable verbose logging
 
@@ -74,6 +85,7 @@ run.cmd --search duckduckgo "quantum computing"
 run.cmd --search serper "machine learning"
 run.cmd --search tavily "blockchain technology"
 run.cmd --model openai --model-name gpt-4 "climate change"
+run.cmd --model ollama --model-name llama3:7b "renewable energy"
 ```
 
 ## Project Structure

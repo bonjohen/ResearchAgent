@@ -32,7 +32,7 @@ def parse_arguments():
         "topic", nargs="*", help="The research topic (if not provided, will prompt)"
     )
     parser.add_argument(
-        "--model", "-m", default="openai", help="Model provider to use (default: openai)"
+        "--model", "-m", default="openai", help="Model provider to use (openai, ollama)"
     )
     parser.add_argument(
         "--model-name", default=None, help="Specific model name to use"
