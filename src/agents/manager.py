@@ -5,11 +5,15 @@ This module implements the ResearchManager class, which orchestrates the researc
 """
 
 import asyncio
-from typing import List
+import os
+from typing import List, Optional
 
 from src.agents.planning import PlanningAgent, SearchQuery, ResearchPlan
 from src.agents.search import SearchAgent, SearchResult
 from src.agents.writer import WriterAgent, ResearchReport
+from src.models.base import ModelProvider
+from src.models.factory import create_model_provider
+from src.tools.web_search import WebSearchTool
 from src.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -22,16 +26,27 @@ class ResearchManager:
     on a given topic and produce a comprehensive report.
     """
 
-    def __init__(self):
+    def __init__(self, model_provider: Optional[ModelProvider] = None, model_type: str = "openai"):
         """
         Initialize the ResearchManager.
+
+        Args:
+            model_provider (Optional[ModelProvider], optional): The model provider to use. Defaults to None (creates provider based on model_type).
+            model_type (str, optional): The type of model to use if model_provider is None. Defaults to "openai".
         """
         logger.info("Initializing ResearchManager")
 
-        # Initialize the agents
-        self.planning_agent = PlanningAgent()
-        self.search_agent = SearchAgent()
-        self.writer_agent = WriterAgent()
+        # Initialize the model provider
+        self.model_provider = model_provider or create_model_provider(model_type)
+        logger.info(f"Using model provider: {self.model_provider.__class__.__name__} with model: {self.model_provider.model_name}")
+
+        # Initialize the search tool
+        self.search_tool = WebSearchTool()
+
+        # Initialize the agents with the same model provider
+        self.planning_agent = PlanningAgent(model_provider=self.model_provider)
+        self.search_agent = SearchAgent(model_provider=self.model_provider, search_tool=self.search_tool)
+        self.writer_agent = WriterAgent(model_provider=self.model_provider)
 
     async def run(self, query: str) -> ResearchReport:
         """
