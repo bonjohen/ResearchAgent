@@ -56,6 +56,8 @@ To use local models with Ollama:
 
 ## Usage
 
+### Command Line Interface
+
 Run the research agent:
 ```
 run.cmd
@@ -65,6 +67,19 @@ Enter your research topic when prompted, and the agent will:
 1. Plan the research approach
 2. Execute web searches
 3. Generate a comprehensive report
+
+### Web Interface
+
+Run the web UI:
+```
+run_ui.cmd
+```
+
+This will start a web server at http://localhost:5000 where you can:
+1. Start new research tasks with different models and search providers
+2. View research progress in real-time
+3. Browse and read all generated reports
+4. Track active research tasks
 
 ### Command-line Options
 

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Agent</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">
+                <i class="bi bi-search"></i> Research Agent
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" id="nav-new-research">New Research</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-reports">Reports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="nav-active-tasks">Active Tasks</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- New Research Form -->
+        <div id="new-research-section">
+            <h2>New Research</h2>
+            <form id="research-form" class="mt-4">
+                <div class="mb-3">
+                    <label for="topic" class="form-label">Research Topic</label>
+                    <input type="text" class="form-control" id="topic" placeholder="Enter a research topic" required>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="model-provider" class="form-label">Model Provider</label>
+                            <select class="form-select" id="model-provider">
+                                <option value="openai" selected>OpenAI</option>
+                                <option value="ollama">Ollama (Local)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="model-name" class="form-label">Model Name</label>
+                            <select class="form-select" id="model-name">
+                                <option value="gpt-3.5-turbo" selected>GPT-3.5 Turbo</option>
+                                <option value="gpt-4">GPT-4</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="search-provider" class="form-label">Search Provider</label>
+                    <select class="form-select" id="search-provider">
+                        <option value="duckduckgo" selected>DuckDuckGo</option>
+                        <option value="google">Google</option>
+                        <option value="serper">Serper</option>
+                        <option value="tavily">Tavily</option>
+                    </select>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="verbose">
+                    <label class="form-check-label" for="verbose">Verbose Logging</label>
+                </div>
+                <button type="submit" class="btn btn-primary">Start Research</button>
+            </form>
+        </div>
+
+        <!-- Reports Section -->
+        <div id="reports-section" class="d-none">
+            <h2>Research Reports</h2>
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="list-group" id="reports-list">
+                        <!-- Reports will be loaded here -->
+                        <div class="text-center p-3">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 id="report-title">Select a report</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="report-content">
+                                <p class="text-muted">Select a report from the list to view its content.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Tasks Section -->
+        <div id="active-tasks-section" class="d-none">
+            <h2>Active Research Tasks</h2>
+            <div class="row mt-4" id="active-tasks-container">
+                <!-- Active tasks will be loaded here -->
+                <p class="text-muted">No active research tasks.</p>
+            </div>
+        </div>
+
+        <!-- Task Progress Modal -->
+        <div class="modal fade" id="task-progress-modal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Research Progress</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <h6 id="task-topic"></h6>
+                        <div class="progress mb-3">
+                            <div id="task-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Status: <span id="task-status" class="badge bg-primary">Starting</span></h6>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Search Queries:</h6>
+                            <ul id="task-queries" class="list-group">
+                                <li class="list-group-item text-muted">No queries yet</li>
+                            </ul>
+                        </div>
+                        <div class="mb-3">
+                            <h6>Logs:</h6>
+                            <div id="task-logs" class="border p-2 bg-light" style="max-height: 200px; overflow-y: auto;">
+                                <p class="text-muted">Waiting for logs...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <a id="view-report-btn" href="#" class="btn btn-primary d-none">View Report</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
