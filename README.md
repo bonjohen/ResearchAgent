@@ -87,7 +87,16 @@ run.cmd --model openai --model-name gpt-4 "climate change"
 - `tests/` - Test suite
 - `scripts/` - CMD scripts for setup and execution
 - `docs/` - Documentation
-- `data/` - Default data directory (configurable)
+
+## Data Storage
+
+Research data is stored in an external storage path outside the project folder. By default, this is `~/Documents/ResearchAgentData`, but it can be customized via the `RESEARCH_DATA_PATH` environment variable. This includes:
+
+- Search results
+- Generated reports
+- Cached content
+
+This approach ensures that your research data persists even if you delete or move the project folder.
 
 ## License
 

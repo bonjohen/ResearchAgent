@@ -81,9 +81,14 @@ def get_storage_path(subdir: Optional[str] = None) -> Path:
     # Try to get the storage path from environment
     storage_path_str = os.environ.get("RESEARCH_DATA_PATH")
 
-    # If not set, use a default path in the current directory
+    # If not set, use a default path outside the project
     if not storage_path_str:
-        storage_path_str = "./temp_data"
+        # Use the user's documents folder
+        user_home = Path.home()
+        documents_path = user_home / "Documents"
+
+        # Create a dedicated folder for research data
+        storage_path_str = str(documents_path / "ResearchAgentData")
         logger.warning(f"RESEARCH_DATA_PATH not set, using default: {storage_path_str}")
 
     storage_path = Path(storage_path_str)
